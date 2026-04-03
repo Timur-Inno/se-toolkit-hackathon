@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canteen Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #1a1a1a; padding: 32px; }
+    h1 { font-size: 22px; font-weight: 600; margin-bottom: 24px; }
+    .card { background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; padding: 20px 24px; margin-bottom: 24px; }
+    h2 { font-size: 15px; font-weight: 600; margin-bottom: 16px; color: #444; }
+    .form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+    input, select { border: 1px solid #d0d0d0; border-radius: 8px; padding: 8px 12px; font-size: 14px; outline: none; }
+    input:focus, select:focus { border-color: #666; }
+    button { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; }
+    .btn-add { background: #1a1a1a; color: #fff; }
+    .btn-add:hover { background: #333; }
+    .btn-del { background: transparent; color: #c0392b; border: 1px solid #c0392b; padding: 4px 12px; font-size: 13px; }
+    .btn-del:hover { background: #fef0ee; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 12px; color: #888; font-weight: 500; padding-bottom: 8px; border-bottom: 1px solid #eee; }
+    td { padding: 10px 0; font-size: 14px; border-bottom: 1px solid #f0f0f0; }
+    td:last-child { text-align: right; }
+    .empty { color: #aaa; font-size: 14px; padding: 12px 0; }
+    .tag { display: inline-block; background: #f0f0f0; border-radius: 4px; padding: 2px 8px; font-size: 12px; color: #555; }
+  </style>
+</head>
+<body>
+  <h1>🍽 Canteen Admin</h1>
+  <div class="card">
+    <h2>Add menu item</h2>
+    <div class="form-row">
+      <input id="name" placeholder="Item name" style="flex:2; min-width:160px">
+      <input id="price" type="number" placeholder="Price" step="0.01" style="width:110px">
+      <select id="category" style="width:120px">
+        <option value="main">Main</option>
+        <option value="soup">Soup</option>
+        <option value="side">Side</option>
+        <option value="drink">Drink</option>
+        <option value="dessert">Dessert</option>
+      </select>
+      <input id="date" type="date" style="width:150px">
+      <button class="btn-add" onclick="addItem()">Add</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Today's menu</h2>
+    <table>
+      <thead><tr><th>Name</th><th>Category</th><th>Price</th><th></th></tr></thead>
+      <tbody id="menu-body"></tbody>
+    </table>
+  </div>
+  <script>
+    const API = `http://${location.hostname}:8000`;
+    function today() { return new Date().toISOString().split('T')[0]; }
+    document.getElementById('date').value = today();
+
+    async function loadMenu() {
+      const res = await fetch(`${API}/menu/?day=${today()}`);
+      const items = await res.json();
+      const tbody = document.getElementById('menu-body');
+      if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="empty">No items for today yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = items.map(i => `
+        <tr>
+          <td>${i.name}</td>
+          <td><span class="tag">${i.category}</span></td>
+          <td>${parseFloat(i.price).toFixed(2)} ₽</td>
+          <td><button class="btn-del" onclick="deleteItem(${i.id})">Remove</button></td>
+        </tr>`).join('');
+    }
+
+    async function addItem() {
+      const name = document.getElementById('name').value.trim();
+      const price = parseFloat(document.getElementById('price').value);
+      const category = document.getElementById('category').value;
+      const available_date = document.getElementById('date').value;
+      if (!name || !price) return alert('Fill in name and price.');
+      await fetch(`${API}/menu/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, price, category, available_date }),
+      });
+      document.getElementById('name').value = '';
+      document.getElementById('price').value = '';
+      loadMenu();
+    }
+
+    async function deleteItem(id) {
+      if (!confirm('Remove this item?')) return;
+      await fetch(`${API}/menu/${id}`, { method: 'DELETE' });
+      loadMenu();
+    }
+
+    loadMenu();
+  </script>
+</body>
+</html>
