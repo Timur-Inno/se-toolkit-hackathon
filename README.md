@@ -1,6 +1,6 @@
-# Canteen Bot — InnoFood
+# InnoFood - Canteen Bot
 
-A Telegram-based canteen ordering system for Innopolis University students.
+A Telegram-based food ordering system for Innopolis University students.
 
 **Bot:** [@InnoFood_bot](https://t.me/InnoFood_bot) - send /start to browse today's menu and place an order.
 
@@ -8,25 +8,33 @@ A Telegram-based canteen ordering system for Innopolis University students.
 
 ## Problem
 
-Students at Innopolis University cannot check the menu or order in advance, causing queues and uncertainty.
+Students at Innopolis University have no way to check menus or order food in advance, causing queues and uncertainty about what is available.
 
 ## Solution
 
-A Telegram bot lets students browse and order instantly. Staff manage the menu and orders via the Canteen Admin web panel.
+A Telegram bot lets students pick a food place, browse the menu, and order instantly. Staff at each venue manage their menu and orders through a shared web admin panel.
+
+## Venues
+
+- Happiness - main dishes, snacks, drinks, desserts
+- Neuro Coffee - coffee, lattes, teas, pastries
+- In Joy - coffee, lattes, teas, pastries
+- Canteen - soups, mains, sides, drinks, desserts
 
 ## Features
 
-- **Telegram bot** - browse menu by category, add to cart, confirm order
-- **Ready notification** - bot notifies student when order is ready for pickup
-- **Cancel with reason** - staff picks a reason, student gets notified instantly
-- **Canteen Admin panel** - 3 tabs: Menu / Orders / History
-- **Menu tab** - add and remove daily menu items by category
-- **Orders tab** - view active orders, mark ready or served, cancel with reason
-- **History tab** - all served and cancelled orders archived here
-- **Order state machine** - strict flow: pending -> ready -> served (invalid transitions blocked)
-- **Auto-refresh** - Orders tab polls every 5 seconds automatically
-- **REST API** - full CRUD with Swagger docs at /docs
-- **Dockerized** - all 4 services start with a single command
+- Venue selection at the start of every order
+- Browse menu by category per venue
+- Add items to cart and confirm order
+- Notification when order is ready for pickup
+- Cancel with reason - student gets notified instantly
+- Admin panel with Menu, Orders, and History tabs
+- Orders filtered per venue so each place sees only their orders
+- Order state flow: pending -> ready -> served
+- Auto-refresh on the Orders tab every 5 seconds
+- REST API with Swagger docs at /docs
+- PostgreSQL for persistent storage
+- Fully dockerized, all services start with one command
 
 ## Stack
 
@@ -40,26 +48,26 @@ A Telegram bot lets students browse and order instantly. Staff manage the menu a
 
 ## Quick Start
 
-Requirements: Docker + Docker Compose + Telegram bot token from @BotFather
+Requirements: Docker, Docker Compose, Telegram bot token from @BotFather
 
     git clone https://github.com/Timur-Inno/se-toolkit-hackathon.git
     cd se-toolkit-hackathon
     cp .env.example .env
-    nano .env  # set TELEGRAM_BOT_TOKEN
+    nano .env
     docker compose up -d
 
 | Service | URL |
 |---------|-----|
-| API | http://10.93.25.190:8000 |
-| Swagger docs | http://10.93.25.190:8000/docs |
-| Admin panel | http://10.93.25.190:8080 |
+| API | http://SERVER_IP:8000 |
+| Swagger docs | http://SERVER_IP:8000/docs |
+| Admin panel | http://SERVER_IP:8080 |
 
 ## Order Flow
 
-    Student  ->  /start -> browse menu -> add to cart -> confirm order
+    Student  ->  /start -> pick venue -> browse menu -> add to cart -> confirm
     Staff    ->  Orders tab: mark ready  -> student notified via Telegram
     Staff    ->  Orders tab: mark served -> moves to History tab
-    Staff    ->  Orders tab: cancel (pick reason) -> student notified via Telegram
+    Staff    ->  Orders tab: cancel with reason -> student notified via Telegram
 
 ## Author
 
