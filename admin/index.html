@@ -40,6 +40,21 @@
     .tag-ready { background: #d1e7dd; color: #0a5c36; }
     .tag-served { background: #cfe2ff; color: #084298; }
     .tag-cancelled { background: #f8d7da; color: #842029; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #fff; border-radius: 14px; padding: 28px 28px 24px; width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); }
+    .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+    .reason-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .reason-btn { padding: 10px 8px; border-radius: 8px; border: 1.5px solid #d0d0d0; background: #fff; cursor: pointer; font-size: 13px; color: #333; text-align: center; transition: all .15s; }
+    .reason-btn:hover { border-color: #c0392b; color: #c0392b; background: #fef0ee; }
+    .reason-btn.selected { border-color: #c0392b; background: #fef0ee; color: #c0392b; font-weight: 600; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+    .btn-confirm-cancel { background: #c0392b; color: #fff; }
+    .btn-confirm-cancel:hover { background: #a93226; }
+    .btn-back { background: transparent; border: 1px solid #d0d0d0; color: #555; }
+    .btn-back:hover { background: #f5f5f5; }
   </style>
 </head>
 <body>
@@ -97,10 +112,32 @@
     </div>
   </div>
 
+  <!-- Cancel reason modal -->
+  <div class="modal-overlay" id="cancel-modal">
+    <div class="modal">
+      <h3>Why are you cancelling?</h3>
+      <div class="reason-grid">
+        <button class="reason-btn" onclick="selectReason(this, 'Item not available today')">Not available today</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Canteen is closed')">Canteen closed</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Ordered too late')">Ordered too late</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Running out of ingredients')">Out of ingredients</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Technical issue')">Technical issue</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Other')">Other</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-back" onclick="closeModal()">Back</button>
+        <button class="btn-confirm-cancel" onclick="confirmCancel()">Cancel order & notify</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const API = `http://${location.hostname}:8000`;
     function today() { return new Date().toISOString().split('T')[0]; }
     document.getElementById('date').value = today();
+
+    let pendingCancelId = null;
+    let selectedReason = '';
 
     function switchTab(tab, e) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -168,7 +205,7 @@
           <td>
             ${o.status === 'pending' ? `<button class="btn-ready" onclick="updateStatus(${o.id},'ready')">Mark ready</button>` : ''}
             ${o.status === 'ready' ? `<button class="btn-served" onclick="updateStatus(${o.id},'served')">Mark served</button>` : ''}
-            <button class="btn-cancel" onclick="updateStatus(${o.id},'cancelled')">Cancel</button>
+            <button class="btn-cancel" onclick="openCancelModal(${o.id})">Cancel</button>
           </td>
         </tr>`).join('');
     }
@@ -191,15 +228,38 @@
         </tr>`).join('');
     }
 
-    async function updateStatus(id, status) {
-      const labels = { ready: 'Mark as ready?', served: 'Mark as served?', cancelled: 'Cancel this order?' };
-      if (!confirm(labels[status])) return;
+    async function updateStatus(id, status, reason = '') {
       await fetch(`${API}/orders/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, reason }),
       });
       loadOrders();
+    }
+
+    function openCancelModal(id) {
+      pendingCancelId = id;
+      selectedReason = '';
+      document.querySelectorAll('.reason-btn').forEach(b => b.classList.remove('selected'));
+      document.getElementById('cancel-modal').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('cancel-modal').classList.remove('open');
+      pendingCancelId = null;
+      selectedReason = '';
+    }
+
+    function selectReason(btn, reason) {
+      document.querySelectorAll('.reason-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedReason = reason;
+    }
+
+    async function confirmCancel() {
+      if (!selectedReason) return alert('Please select a reason.');
+      await updateStatus(pendingCancelId, 'cancelled', selectedReason);
+      closeModal();
     }
 
     setInterval(() => {

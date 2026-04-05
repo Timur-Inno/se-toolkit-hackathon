@@ -125,10 +125,21 @@ async def handle_notify(request):
     data = await request.json()
     user_id = data.get("telegram_user_id")
     order_id = data.get("order_id")
+    notify_type = data.get("type", "ready")
+    reason = data.get("reason", "")
+
     if user_id and tg_app:
+        if notify_type == "ready":
+            msg = f"🔔 *Order #{order_id} is ready!* Come pick it up. 🍽"
+        else:
+            msg = f"❌ *Order #{order_id} has been cancelled.*"
+            if reason:
+                msg += f"\n\nReason: _{reason}_"
+            msg += "\n\nSorry for the inconvenience. Use /start to order again."
+
         await tg_app.bot.send_message(
             chat_id=user_id,
-            text=f"🔔 *Order #{order_id} is ready!* Come pick it up.",
+            text=msg,
             parse_mode="Markdown",
         )
     return web.Response(text="ok")

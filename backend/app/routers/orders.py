@@ -45,6 +45,7 @@ async def list_orders():
 
 class StatusUpdate(BaseModel):
     status: str
+    reason: str = ""
 
 
 @router.patch("/{order_id}/status", response_model=OrderOut)
@@ -57,21 +58,35 @@ async def update_order_status(order_id: int, body: StatusUpdate):
         {"status": body.status, "id": order_id},
     )
     updated = await _get_order(order_id)
+
     if body.status == "ready":
-        try:
-            async with httpx.AsyncClient(timeout=3) as client:
-                await client.post(BOT_NOTIFY_URL, json={
-                    "telegram_user_id": order["telegram_user_id"],
-                    "order_id": order_id,
-                })
-        except Exception:
-            pass
+        await _notify(order["telegram_user_id"], {
+            "telegram_user_id": order["telegram_user_id"],
+            "order_id": order_id,
+            "type": "ready",
+        })
+    elif body.status == "cancelled":
+        await _notify(order["telegram_user_id"], {
+            "telegram_user_id": order["telegram_user_id"],
+            "order_id": order_id,
+            "type": "cancelled",
+            "reason": body.reason,
+        })
+
     return updated
 
 
 @router.get("/{order_id}", response_model=OrderOut)
 async def get_order(order_id: int):
     return await _get_order(order_id)
+
+
+async def _notify(user_id: int, payload: dict):
+    try:
+        async with httpx.AsyncClient(timeout=3) as client:
+            await client.post(BOT_NOTIFY_URL, json=payload)
+    except Exception:
+        pass
 
 
 async def _get_order(order_id: int):
