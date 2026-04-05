@@ -8,6 +8,11 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #1a1a1a; padding: 32px; }
     h1 { font-size: 22px; font-weight: 600; margin-bottom: 24px; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 24px; }
+    .tab { padding: 8px 20px; border-radius: 8px; border: 1px solid #d0d0d0; background: #fff; cursor: pointer; font-size: 14px; font-weight: 500; color: #555; }
+    .tab.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+    .page { display: none; }
+    .page.active { display: block; }
     .card { background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; padding: 20px 24px; margin-bottom: 24px; }
     h2 { font-size: 15px; font-weight: 600; margin-bottom: 16px; color: #444; }
     .form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
@@ -18,43 +23,76 @@
     .btn-add:hover { background: #333; }
     .btn-del { background: transparent; color: #c0392b; border: 1px solid #c0392b; padding: 4px 12px; font-size: 13px; }
     .btn-del:hover { background: #fef0ee; }
+    .btn-ready { background: #27ae60; color: #fff; padding: 4px 12px; font-size: 13px; }
+    .btn-ready:hover { background: #219a52; }
     table { width: 100%; border-collapse: collapse; }
     th { text-align: left; font-size: 12px; color: #888; font-weight: 500; padding-bottom: 8px; border-bottom: 1px solid #eee; }
-    td { padding: 10px 0; font-size: 14px; border-bottom: 1px solid #f0f0f0; }
+    td { padding: 10px 0; font-size: 14px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
     td:last-child { text-align: right; }
     .empty { color: #aaa; font-size: 14px; padding: 12px 0; }
-    .tag { display: inline-block; background: #f0f0f0; border-radius: 4px; padding: 2px 8px; font-size: 12px; color: #555; }
+    .tag { display: inline-block; border-radius: 4px; padding: 2px 8px; font-size: 12px; }
+    .tag-cat { background: #f0f0f0; color: #555; }
+    .tag-pending { background: #fff3cd; color: #856404; }
+    .tag-ready { background: #d1e7dd; color: #0a5c36; }
+    .tag-done { background: #e2e3e5; color: #555; }
   </style>
 </head>
 <body>
   <h1>🍽 Canteen Admin</h1>
-  <div class="card">
-    <h2>Add menu item</h2>
-    <div class="form-row">
-      <input id="name" placeholder="Item name" style="flex:2; min-width:160px">
-      <input id="price" type="number" placeholder="Price" step="0.01" style="width:110px">
-      <select id="category" style="width:120px">
-        <option value="main">Main</option>
-        <option value="soup">Soup</option>
-        <option value="side">Side</option>
-        <option value="drink">Drink</option>
-        <option value="dessert">Dessert</option>
-      </select>
-      <input id="date" type="date" style="width:150px">
-      <button class="btn-add" onclick="addItem()">Add</button>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('menu')">Menu</button>
+    <button class="tab" onclick="switchTab('orders')">Orders</button>
+  </div>
+
+  <div id="page-menu" class="page active">
+    <div class="card">
+      <h2>Add menu item</h2>
+      <div class="form-row">
+        <input id="name" placeholder="Item name" style="flex:2; min-width:160px">
+        <input id="price" type="number" placeholder="Price" step="0.01" style="width:110px">
+        <select id="category" style="width:120px">
+          <option value="main">Main</option>
+          <option value="soup">Soup</option>
+          <option value="side">Side</option>
+          <option value="drink">Drink</option>
+          <option value="dessert">Dessert</option>
+        </select>
+        <input id="date" type="date" style="width:150px">
+        <button class="btn-add" onclick="addItem()">Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Today's menu</h2>
+      <table>
+        <thead><tr><th>Name</th><th>Category</th><th>Price</th><th></th></tr></thead>
+        <tbody id="menu-body"></tbody>
+      </table>
     </div>
   </div>
-  <div class="card">
-    <h2>Today's menu</h2>
-    <table>
-      <thead><tr><th>Name</th><th>Category</th><th>Price</th><th></th></tr></thead>
-      <tbody id="menu-body"></tbody>
-    </table>
+
+  <div id="page-orders" class="page">
+    <div class="card">
+      <h2>Today's orders <button class="btn-add" style="font-size:12px;padding:4px 12px;margin-left:12px" onclick="loadOrders()">Refresh</button></h2>
+      <table>
+        <thead><tr><th>#</th><th>Student</th><th>Items</th><th>Status</th><th></th></tr></thead>
+        <tbody id="orders-body"></tbody>
+      </table>
+    </div>
   </div>
+
   <script>
     const API = `http://${location.hostname}:8000`;
     function today() { return new Date().toISOString().split('T')[0]; }
     document.getElementById('date').value = today();
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('page-' + tab).classList.add('active');
+      if (tab === 'orders') loadOrders();
+    }
 
     async function loadMenu() {
       const res = await fetch(`${API}/menu/?day=${today()}`);
@@ -67,7 +105,7 @@
       tbody.innerHTML = items.map(i => `
         <tr>
           <td>${i.name}</td>
-          <td><span class="tag">${i.category}</span></td>
+          <td><span class="tag tag-cat">${i.category}</span></td>
           <td>${parseFloat(i.price).toFixed(2)} ₽</td>
           <td><button class="btn-del" onclick="deleteItem(${i.id})">Remove</button></td>
         </tr>`).join('');
@@ -95,7 +133,44 @@
       loadMenu();
     }
 
+    async function loadOrders() {
+      const res = await fetch(`${API}/orders/`);
+      const orders = await res.json();
+      const tbody = document.getElementById('orders-body');
+      if (!orders.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">No orders yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = orders.map(o => `
+        <tr>
+          <td>#${o.id}</td>
+          <td>${o.telegram_username ? '@' + o.telegram_username : o.telegram_user_id}</td>
+          <td>${o.items.map(i => `${i.menu_item_id}×${i.quantity}`).join(', ')}</td>
+          <td><span class="tag tag-${o.status}">${o.status}</span></td>
+          <td>${o.status === 'pending'
+            ? `<button class="btn-ready" onclick="markReady(${o.id})">Mark ready</button>`
+            : ''
+          }</td>
+        </tr>`).join('');
+    }
+
+    async function markReady(id) {
+      await fetch(`${API}/orders/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'ready' }),
+      });
+      loadOrders();
+    }
+
     loadMenu();
   </script>
 </body>
 </html>
+<script>
+  setInterval(() => {
+    if (document.getElementById('page-orders').classList.contains('active')) {
+      loadOrders();
+    }
+  }, 5000);
+</script>

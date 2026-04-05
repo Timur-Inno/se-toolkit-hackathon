@@ -1,5 +1,7 @@
 import os
+import asyncio
 import httpx
+from aiohttp import web
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler,
@@ -9,6 +11,9 @@ from telegram.ext import (
 API_BASE = os.getenv("API_BASE_URL", "http://backend:8000")
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 BROWSING, CONFIRMING = range(2)
+
+tg_app = None
+
 
 async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     ctx.user_data["cart"] = {}
@@ -42,6 +47,7 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
                                     reply_markup=InlineKeyboardMarkup(keyboard))
     return BROWSING
 
+
 async def add_to_cart(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     item_id = query.data.split("_")[1]
@@ -50,6 +56,7 @@ async def add_to_cart(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     name = ctx.user_data.get("menu", {}).get(item_id, {}).get("name", "item")
     await query.answer(f"Added {name} ✓")
     return BROWSING
+
 
 async def show_cart(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -78,6 +85,7 @@ async def show_cart(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
                                   reply_markup=InlineKeyboardMarkup(keyboard))
     return CONFIRMING
 
+
 async def confirm_order(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -94,13 +102,16 @@ async def confirm_order(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     if resp.status_code == 201:
         order = resp.json()
-        await query.edit_message_text(f"✅ *Order #{order['id']} placed!*\n\nCome pick it up when ready.",
-                                      parse_mode="Markdown")
+        await query.edit_message_text(
+            f"✅ *Order #{order['id']} placed!*\n\nWe'll notify you when it's ready.",
+            parse_mode="Markdown",
+        )
     else:
         await query.edit_message_text("Something went wrong. Try /start again.")
 
     ctx.user_data["cart"] = {}
     return ConversationHandler.END
+
 
 async def cancel(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -109,8 +120,33 @@ async def cancel(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await query.edit_message_text("Cancelled. Use /start to begin again.")
     return ConversationHandler.END
 
-def main():
-    app = Application.builder().token(BOT_TOKEN).build()
+
+async def handle_notify(request):
+    data = await request.json()
+    user_id = data.get("telegram_user_id")
+    order_id = data.get("order_id")
+    if user_id and tg_app:
+        await tg_app.bot.send_message(
+            chat_id=user_id,
+            text=f"🔔 *Order #{order_id} is ready!* Come pick it up.",
+            parse_mode="Markdown",
+        )
+    return web.Response(text="ok")
+
+
+async def main():
+    global tg_app
+
+    web_app = web.Application()
+    web_app.router.add_post("/notify", handle_notify)
+    runner = web.AppRunner(web_app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", 9000)
+    await site.start()
+    print("Notify server running on port 9000")
+
+    tg_app = Application.builder().token(BOT_TOKEN).build()
+
     conv = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
@@ -124,10 +160,17 @@ def main():
             ],
         },
         fallbacks=[CommandHandler("start", start)],
+        per_message=False,
     )
-    app.add_handler(conv)
+    tg_app.add_handler(conv)
+
     print("Bot started")
-    app.run_polling()
+    async with tg_app:
+        await tg_app.initialize()
+        await tg_app.start()
+        await tg_app.updater.start_polling()
+        await asyncio.Event().wait()
+
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

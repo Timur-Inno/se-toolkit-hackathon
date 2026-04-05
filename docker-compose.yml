@@ -9,8 +9,6 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "5432:5432"
 
   backend:
     build: ./backend
@@ -18,6 +16,7 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-canteen}:${POSTGRES_PASSWORD:-canteen}@db:5432/${POSTGRES_DB:-canteen}
+      BOT_NOTIFY_URL: http://bot:9000/notify
     ports:
       - "8000:8000"
     depends_on:
