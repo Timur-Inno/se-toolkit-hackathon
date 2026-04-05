@@ -1,8 +1,10 @@
-# InnoFood — Canteen Bot
+# Canteen Bot — InnoFood
 
 A Telegram-based canteen ordering system for Innopolis University students.
 
-**Bot:** [@InnoFood_bot](https://t.me/InnoFood_bot) — send `/start` to browse today's menu and place an order.
+**Bot:** [@InnoFood_bot](https://t.me/InnoFood_bot) — send /start to browse today's menu and place an order.
+
+**Admin panel:** http://10.93.25.190:8080
 
 ## Problem
 
@@ -10,16 +12,18 @@ Students at Innopolis University cannot check the menu or order in advance — c
 
 ## Solution
 
-A Telegram bot lets students browse and order instantly. Staff manage the menu and orders via a web admin panel.
+A Telegram bot lets students browse and order instantly. Staff manage the menu and orders via the Canteen Admin web panel.
 
 ## Features
 
 - **Telegram bot** — browse menu by category, add to cart, confirm order
 - **Ready notification** — bot notifies student when order is ready for pickup
 - **Cancel with reason** — staff picks a reason, student gets notified instantly
-- **Web admin panel** — add/remove menu items, manage active orders, view history
+- **Canteen Admin panel** — 3 tabs: Menu / Orders / History
+- **Menu tab** — add and remove daily menu items by category
+- **Orders tab** — view active orders, mark ready or served, cancel with reason
+- **History tab** — all served and cancelled orders archived here
 - **Order state machine** — strict flow: pending → ready → served (invalid transitions blocked)
-- **Order history tab** — served and cancelled orders archived separately
 - **Auto-refresh** — Orders tab polls every 5 seconds automatically
 - **REST API** — full CRUD with Swagger docs at /docs
 - **Dockerized** — all 4 services start with a single command
@@ -52,10 +56,10 @@ Requirements: Docker + Docker Compose + Telegram bot token from @BotFather
 
 ## Order Flow
 
-    Student  ->  /start -> browse -> add to cart -> confirm
-    Staff    ->  mark ready  -> student notified
-    Staff    ->  mark served -> moves to History
-    Staff    ->  cancel (pick reason) -> student notified
+    Student  ->  /start -> browse menu -> add to cart -> confirm order
+    Staff    ->  Orders tab: mark ready  -> student notified via Telegram
+    Staff    ->  Orders tab: mark served -> moves to History tab
+    Staff    ->  Orders tab: cancel (pick reason) -> student notified via Telegram
 
 ## Author
 
