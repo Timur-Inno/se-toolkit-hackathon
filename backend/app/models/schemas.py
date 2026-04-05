@@ -6,6 +6,7 @@ class MenuItemCreate(BaseModel):
     name: str
     price: float
     category: str = "main"
+    venue: str = "canteen"
     available_date: Optional[date] = None
 
 class MenuItemOut(BaseModel):
@@ -13,6 +14,7 @@ class MenuItemOut(BaseModel):
     name: str
     price: float
     category: str
+    venue: str
     available_date: date
 
 class OrderItemIn(BaseModel):
@@ -22,11 +24,13 @@ class OrderItemIn(BaseModel):
 class OrderCreate(BaseModel):
     telegram_user_id: int
     telegram_username: Optional[str] = None
+    venue: str = "canteen"
     items: list[OrderItemIn]
 
 class OrderOut(BaseModel):
     id: int
     telegram_user_id: int
     telegram_username: Optional[str]
+    venue: str
     status: str
     items: list[OrderItemIn]

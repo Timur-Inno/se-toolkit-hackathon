@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS menu_items (
     name VARCHAR(100) NOT NULL,
     price NUMERIC(6,2) NOT NULL,
     category VARCHAR(50) DEFAULT 'main',
+    venue VARCHAR(50) NOT NULL DEFAULT 'canteen',
     available_date DATE NOT NULL DEFAULT CURRENT_DATE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -11,6 +12,7 @@ CREATE TABLE IF NOT EXISTS orders (
     id SERIAL PRIMARY KEY,
     telegram_user_id BIGINT NOT NULL,
     telegram_username VARCHAR(100),
+    venue VARCHAR(50) NOT NULL DEFAULT 'canteen',
     status VARCHAR(20) NOT NULL DEFAULT 'pending',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );

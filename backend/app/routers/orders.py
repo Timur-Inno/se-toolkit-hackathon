@@ -18,9 +18,9 @@ VALID_TRANSITIONS = {
 @router.post("/", response_model=OrderOut, status_code=201)
 async def create_order(order: OrderCreate):
     order_id = await database.execute(
-        """INSERT INTO orders (telegram_user_id, telegram_username)
-           VALUES (:uid, :uname) RETURNING id""",
-        {"uid": order.telegram_user_id, "uname": order.telegram_username},
+        """INSERT INTO orders (telegram_user_id, telegram_username, venue)
+           VALUES (:uid, :uname, :venue) RETURNING id""",
+        {"uid": order.telegram_user_id, "uname": order.telegram_username, "venue": order.venue},
     )
     for item in order.items:
         await database.execute(
@@ -30,8 +30,14 @@ async def create_order(order: OrderCreate):
     return await _get_order(order_id)
 
 @router.get("/", response_model=list[OrderOut])
-async def list_orders():
-    orders = await database.fetch_all("SELECT * FROM orders ORDER BY created_at DESC")
+async def list_orders(venue: str = None):
+    if venue:
+        orders = await database.fetch_all(
+            "SELECT * FROM orders WHERE venue = :venue ORDER BY created_at DESC",
+            {"venue": venue}
+        )
+    else:
+        orders = await database.fetch_all("SELECT * FROM orders ORDER BY created_at DESC")
     result = []
     for order in orders:
         items = await database.fetch_all(
@@ -42,6 +48,7 @@ async def list_orders():
             id=order["id"],
             telegram_user_id=order["telegram_user_id"],
             telegram_username=order["telegram_username"],
+            venue=order["venue"],
             status=order["status"],
             items=[OrderItemIn(menu_item_id=i["menu_item_id"], quantity=i["quantity"]) for i in items],
         ))
@@ -56,11 +63,9 @@ async def update_order_status(order_id: int, body: StatusUpdate):
     order = await database.fetch_one("SELECT * FROM orders WHERE id = :id", {"id": order_id})
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
-
     allowed = VALID_TRANSITIONS.get(order["status"], [])
     if body.status not in allowed:
-        raise HTTPException(status_code=400, detail=f"Cannot move from '{order['status']}' to '{body.status}'")
-
+        raise HTTPException(status_code=400, detail=f"Cannot move from {order[chr(39)]status{chr(39)]} to {body.status}")
     await database.execute(
         "UPDATE orders SET status = :status WHERE id = :id",
         {"status": body.status, "id": order_id},
@@ -69,7 +74,6 @@ async def update_order_status(order_id: int, body: StatusUpdate):
         await _notify(order["telegram_user_id"], {"telegram_user_id": order["telegram_user_id"], "order_id": order_id, "type": "ready"})
     elif body.status == "cancelled":
         await _notify(order["telegram_user_id"], {"telegram_user_id": order["telegram_user_id"], "order_id": order_id, "type": "cancelled", "reason": body.reason})
-
     return await _get_order(order_id)
 
 @router.get("/{order_id}", response_model=OrderOut)
@@ -94,6 +98,7 @@ async def _get_order(order_id: int):
         id=order["id"],
         telegram_user_id=order["telegram_user_id"],
         telegram_username=order["telegram_username"],
+        venue=order["venue"],
         status=order["status"],
         items=[OrderItemIn(menu_item_id=i["menu_item_id"], quantity=i["quantity"]) for i in items],
     )

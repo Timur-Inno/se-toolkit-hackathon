@@ -7,7 +7,8 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #1a1a1a; padding: 32px; }
-    h1 { font-size: 22px; font-weight: 600; margin-bottom: 24px; }
+    h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+    .venue-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 20px; }
     .tabs { display: flex; gap: 4px; margin-bottom: 24px; }
     .tab { padding: 8px 20px; border-radius: 8px; border: 1px solid #d0d0d0; background: #fff; cursor: pointer; font-size: 14px; font-weight: 500; color: #555; }
     .tab.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
@@ -17,18 +18,12 @@
     h2 { font-size: 15px; font-weight: 600; margin-bottom: 16px; color: #444; }
     .form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
     input, select { border: 1px solid #d0d0d0; border-radius: 8px; padding: 8px 12px; font-size: 14px; outline: none; }
-    input:focus, select:focus { border-color: #666; }
     button { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; }
     .btn-add { background: #1a1a1a; color: #fff; }
-    .btn-add:hover { background: #333; }
     .btn-del { background: transparent; color: #c0392b; border: 1px solid #c0392b; padding: 4px 12px; font-size: 13px; }
-    .btn-del:hover { background: #fef0ee; }
     .btn-ready { background: #27ae60; color: #fff; padding: 4px 12px; font-size: 13px; border: none; }
-    .btn-ready:hover { background: #219a52; }
     .btn-served { background: #2980b9; color: #fff; padding: 4px 12px; font-size: 13px; border: none; margin-left: 6px; }
-    .btn-served:hover { background: #2471a3; }
     .btn-cancel { background: transparent; color: #c0392b; border: 1px solid #c0392b; padding: 4px 12px; font-size: 13px; margin-left: 6px; }
-    .btn-cancel:hover { background: #fef0ee; }
     table { width: 100%; border-collapse: collapse; }
     th { text-align: left; font-size: 12px; color: #888; font-weight: 500; padding-bottom: 8px; border-bottom: 1px solid #eee; }
     td { padding: 10px 0; font-size: 14px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
@@ -40,85 +35,92 @@
     .tag-ready { background: #d1e7dd; color: #0a5c36; }
     .tag-served { background: #cfe2ff; color: #084298; }
     .tag-cancelled { background: #f8d7da; color: #842029; }
-
-    /* Modal */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; }
     .modal-overlay.open { display: flex; }
-    .modal { background: #fff; border-radius: 14px; padding: 28px 28px 24px; width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); }
+    .modal { background: #fff; border-radius: 14px; padding: 28px; width: 100%; max-width: 400px; }
     .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
     .reason-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
-    .reason-btn { padding: 10px 8px; border-radius: 8px; border: 1.5px solid #d0d0d0; background: #fff; cursor: pointer; font-size: 13px; color: #333; text-align: center; transition: all .15s; }
-    .reason-btn:hover { border-color: #c0392b; color: #c0392b; background: #fef0ee; }
+    .reason-btn { padding: 10px 8px; border-radius: 8px; border: 1.5px solid #d0d0d0; background: #fff; cursor: pointer; font-size: 13px; text-align: center; }
     .reason-btn.selected { border-color: #c0392b; background: #fef0ee; color: #c0392b; font-weight: 600; }
-    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
     .btn-confirm-cancel { background: #c0392b; color: #fff; }
-    .btn-confirm-cancel:hover { background: #a93226; }
     .btn-back { background: transparent; border: 1px solid #d0d0d0; color: #555; }
-    .btn-back:hover { background: #f5f5f5; }
+    .no-venue { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 16px; }
+    .venue-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 400px; }
+    .venue-card { padding: 24px; border-radius: 12px; border: 2px solid #e0e0e0; background: #fff; cursor: pointer; text-align: center; font-size: 16px; font-weight: 600; transition: all .15s; }
+    .venue-card:hover { border-color: #1a1a1a; background: #f9f9f9; }
   </style>
 </head>
 <body>
-  <h1>🍽 Canteen Admin</h1>
 
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('menu', event)">Menu</button>
-    <button class="tab" onclick="switchTab('orders', event)">Orders</button>
-    <button class="tab" onclick="switchTab('history', event)">History</button>
+  <div id="venue-selector" class="no-venue">
+    <h1>Select your venue</h1>
+    <div class="venue-grid">
+      <div class="venue-card" onclick="selectVenue('happiness')">🍔<br>Happiness</div>
+      <div class="venue-card" onclick="selectVenue('neuro')">☕<br>Neuro Coffee</div>
+      <div class="venue-card" onclick="selectVenue('injoy')">🧋<br>In Joy</div>
+      <div class="venue-card" onclick="selectVenue('canteen')">🍽<br>Canteen</div>
+    </div>
   </div>
 
-  <div id="page-menu" class="page active">
-    <div class="card">
-      <h2>Add menu item</h2>
-      <div class="form-row">
-        <input id="name" placeholder="Item name" style="flex:2; min-width:160px">
-        <input id="price" type="number" placeholder="Price" step="0.01" style="width:110px">
-        <select id="category" style="width:120px">
-          <option value="main">Main</option>
-          <option value="soup">Soup</option>
-          <option value="side">Side</option>
-          <option value="drink">Drink</option>
-          <option value="dessert">Dessert</option>
-        </select>
-        <input id="date" type="date" style="width:150px">
-        <button class="btn-add" onclick="addItem()">Add</button>
+  <div id="main-app" style="display:none">
+    <h1 id="venue-title">Canteen Admin</h1>
+    <div id="venue-badge" class="venue-badge"></div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('menu', event)">Menu</button>
+      <button class="tab" onclick="switchTab('orders', event)">Orders</button>
+      <button class="tab" onclick="switchTab('history', event)">History</button>
+      <button class="tab" onclick="changeVenue()" style="margin-left:auto">Switch venue</button>
+    </div>
+
+    <div id="page-menu" class="page active">
+      <div class="card">
+        <h2>Add menu item</h2>
+        <div class="form-row">
+          <input id="name" placeholder="Item name" style="flex:2; min-width:160px">
+          <input id="price" type="number" placeholder="Price" step="0.01" style="width:110px">
+          <select id="category" style="width:130px"></select>
+          <input id="date" type="date" style="width:150px">
+          <button class="btn-add" onclick="addItem()">Add</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Today's menu</h2>
+        <table>
+          <thead><tr><th>Name</th><th>Category</th><th>Price</th><th></th></tr></thead>
+          <tbody id="menu-body"></tbody>
+        </table>
       </div>
     </div>
-    <div class="card">
-      <h2>Today's menu</h2>
-      <table>
-        <thead><tr><th>Name</th><th>Category</th><th>Price</th><th></th></tr></thead>
-        <tbody id="menu-body"></tbody>
-      </table>
+
+    <div id="page-orders" class="page">
+      <div class="card">
+        <h2>Active orders <button class="btn-add" style="font-size:12px;padding:4px 12px;margin-left:12px" onclick="loadOrders()">Refresh</button></h2>
+        <table>
+          <thead><tr><th>#</th><th>Student</th><th>Items</th><th>Status</th><th></th></tr></thead>
+          <tbody id="orders-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="page-history" class="page">
+      <div class="card">
+        <h2>Order history <button class="btn-add" style="font-size:12px;padding:4px 12px;margin-left:12px" onclick="loadHistory()">Refresh</button></h2>
+        <table>
+          <thead><tr><th>#</th><th>Student</th><th>Items</th><th>Status</th></tr></thead>
+          <tbody id="history-body"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <div id="page-orders" class="page">
-    <div class="card">
-      <h2>Active orders <button class="btn-add" style="font-size:12px;padding:4px 12px;margin-left:12px" onclick="loadOrders()">Refresh</button></h2>
-      <table>
-        <thead><tr><th>#</th><th>Student</th><th>Items</th><th>Status</th><th></th></tr></thead>
-        <tbody id="orders-body"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div id="page-history" class="page">
-    <div class="card">
-      <h2>Order history <button class="btn-add" style="font-size:12px;padding:4px 12px;margin-left:12px" onclick="loadHistory()">Refresh</button></h2>
-      <table>
-        <thead><tr><th>#</th><th>Student</th><th>Items</th><th>Status</th></tr></thead>
-        <tbody id="history-body"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Cancel reason modal -->
   <div class="modal-overlay" id="cancel-modal">
     <div class="modal">
       <h3>Why are you cancelling?</h3>
       <div class="reason-grid">
         <button class="reason-btn" onclick="selectReason(this, 'Item not available today')">Not available today</button>
-        <button class="reason-btn" onclick="selectReason(this, 'Canteen is closed')">Canteen closed</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Venue is closed')">Venue closed</button>
         <button class="reason-btn" onclick="selectReason(this, 'Ordered too late')">Ordered too late</button>
         <button class="reason-btn" onclick="selectReason(this, 'Running out of ingredients')">Out of ingredients</button>
         <button class="reason-btn" onclick="selectReason(this, 'Technical issue')">Technical issue</button>
@@ -133,11 +135,40 @@
 
   <script>
     const API = `http://${location.hostname}:8000`;
-    function today() { return new Date().toISOString().split('T')[0]; }
-    document.getElementById('date').value = today();
-
+    const VENUES = {
+      happiness: { name: 'Happiness', emoji: '🍔', color: '#e67e22', cats: ['main','snack','side','drink','dessert'] },
+      neuro:     { name: 'Neuro Coffee', emoji: '☕', color: '#6f4e37', cats: ['coffee','latte','tea','pastry','snack'] },
+      injoy:     { name: 'In Joy', emoji: '🧋', color: '#8e44ad', cats: ['coffee','latte','tea','pastry','snack'] },
+      canteen:   { name: 'Canteen', emoji: '🍽', color: '#27ae60', cats: ['soup','main','side','drink','dessert'] },
+    };
+    let currentVenue = null;
     let pendingCancelId = null;
     let selectedReason = '';
+
+    function today() { return new Date().toISOString().split('T')[0]; }
+
+    function selectVenue(key) {
+      currentVenue = key;
+      const v = VENUES[key];
+      document.getElementById('venue-selector').style.display = 'none';
+      document.getElementById('main-app').style.display = 'block';
+      document.getElementById('venue-title').textContent = v.emoji + ' ' + v.name + ' Admin';
+      const badge = document.getElementById('venue-badge');
+      badge.textContent = v.name;
+      badge.style.background = v.color + '22';
+      badge.style.color = v.color;
+      badge.style.border = '1px solid ' + v.color;
+      const sel = document.getElementById('category');
+      sel.innerHTML = v.cats.map(c => `<option value="${c}">${c.charAt(0).toUpperCase()+c.slice(1)}</option>`).join('');
+      document.getElementById('date').value = today();
+      loadMenu();
+    }
+
+    function changeVenue() {
+      currentVenue = null;
+      document.getElementById('main-app').style.display = 'none';
+      document.getElementById('venue-selector').style.display = 'flex';
+    }
 
     function switchTab(tab, e) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -149,20 +180,16 @@
     }
 
     async function loadMenu() {
-      const res = await fetch(`${API}/menu/?day=${today()}`);
+      const res = await fetch(`${API}/menu/?day=${today()}&venue=${currentVenue}`);
       const items = await res.json();
       const tbody = document.getElementById('menu-body');
-      if (!items.length) {
-        tbody.innerHTML = '<tr><td colspan="4" class="empty">No items for today yet.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = items.map(i => `
-        <tr>
-          <td>${i.name}</td>
-          <td><span class="tag tag-cat">${i.category}</span></td>
-          <td>${parseFloat(i.price).toFixed(2)} ₽</td>
-          <td><button class="btn-del" onclick="deleteItem(${i.id})">Remove</button></td>
-        </tr>`).join('');
+      if (!items.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty">No items yet.</td></tr>'; return; }
+      tbody.innerHTML = items.map(i => `<tr>
+        <td>${i.name}</td>
+        <td><span class="tag tag-cat">${i.category}</span></td>
+        <td>${parseFloat(i.price).toFixed(2)} R</td>
+        <td><button class="btn-del" onclick="deleteItem(${i.id})">Remove</button></td>
+      </tr>`).join('');
     }
 
     async function addItem() {
@@ -172,9 +199,8 @@
       const available_date = document.getElementById('date').value;
       if (!name || !price) return alert('Fill in name and price.');
       await fetch(`${API}/menu/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, price, category, available_date }),
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, price, category, venue: currentVenue, available_date }),
       });
       document.getElementById('name').value = '';
       document.getElementById('price').value = '';
@@ -188,74 +214,56 @@
     }
 
     async function loadOrders() {
-      const res = await fetch(`${API}/orders/`);
+      const res = await fetch(`${API}/orders/?venue=${currentVenue}`);
       const all = await res.json();
       const active = all.filter(o => o.status === 'pending' || o.status === 'ready');
       const tbody = document.getElementById('orders-body');
-      if (!active.length) {
-        tbody.innerHTML = '<tr><td colspan="5" class="empty">No active orders.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = active.map(o => `
-        <tr>
-          <td>#${o.id}</td>
-          <td>${o.telegram_username ? '@' + o.telegram_username : o.telegram_user_id}</td>
-          <td>${o.items.map(i => `${i.menu_item_id}×${i.quantity}`).join(', ')}</td>
-          <td><span class="tag tag-${o.status}">${o.status}</span></td>
-          <td>
-            ${o.status === 'pending' ? `<button class="btn-ready" onclick="updateStatus(${o.id},'ready')">Mark ready</button>` : ''}
-            ${o.status === 'ready' ? `<button class="btn-served" onclick="updateStatus(${o.id},'served')">Mark served</button>` : ''}
-            <button class="btn-cancel" onclick="openCancelModal(${o.id})">Cancel</button>
-          </td>
-        </tr>`).join('');
+      if (!active.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">No active orders.</td></tr>'; return; }
+      tbody.innerHTML = active.map(o => `<tr>
+        <td>#${o.id}</td>
+        <td>${o.telegram_username ? '@' + o.telegram_username : o.telegram_user_id}</td>
+        <td>${o.items.map(i => i.menu_item_id + 'x' + i.quantity).join(', ')}</td>
+        <td><span class="tag tag-${o.status}">${o.status}</span></td>
+        <td>
+          ${o.status === 'pending' ? `<button class="btn-ready" onclick="updateStatus(${o.id},'ready')">Mark ready</button>` : ''}
+          ${o.status === 'ready' ? `<button class="btn-served" onclick="updateStatus(${o.id},'served')">Mark served</button>` : ''}
+          <button class="btn-cancel" onclick="openCancelModal(${o.id})">Cancel</button>
+        </td>
+      </tr>`).join('');
     }
 
     async function loadHistory() {
-      const res = await fetch(`${API}/orders/`);
+      const res = await fetch(`${API}/orders/?venue=${currentVenue}`);
       const all = await res.json();
       const done = all.filter(o => o.status === 'served' || o.status === 'cancelled');
       const tbody = document.getElementById('history-body');
-      if (!done.length) {
-        tbody.innerHTML = '<tr><td colspan="4" class="empty">No history yet.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = done.map(o => `
-        <tr>
-          <td>#${o.id}</td>
-          <td>${o.telegram_username ? '@' + o.telegram_username : o.telegram_user_id}</td>
-          <td>${o.items.map(i => `${i.menu_item_id}×${i.quantity}`).join(', ')}</td>
-          <td><span class="tag tag-${o.status}">${o.status}</span></td>
-        </tr>`).join('');
+      if (!done.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty">No history yet.</td></tr>'; return; }
+      tbody.innerHTML = done.map(o => `<tr>
+        <td>#${o.id}</td>
+        <td>${o.telegram_username ? '@' + o.telegram_username : o.telegram_user_id}</td>
+        <td>${o.items.map(i => i.menu_item_id + 'x' + i.quantity).join(', ')}</td>
+        <td><span class="tag tag-${o.status}">${o.status}</span></td>
+      </tr>`).join('');
     }
 
     async function updateStatus(id, status, reason = '') {
       await fetch(`${API}/orders/${id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status, reason }),
       });
       loadOrders();
     }
 
     function openCancelModal(id) {
-      pendingCancelId = id;
-      selectedReason = '';
+      pendingCancelId = id; selectedReason = '';
       document.querySelectorAll('.reason-btn').forEach(b => b.classList.remove('selected'));
       document.getElementById('cancel-modal').classList.add('open');
     }
-
-    function closeModal() {
-      document.getElementById('cancel-modal').classList.remove('open');
-      pendingCancelId = null;
-      selectedReason = '';
-    }
-
+    function closeModal() { document.getElementById('cancel-modal').classList.remove('open'); }
     function selectReason(btn, reason) {
       document.querySelectorAll('.reason-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      selectedReason = reason;
+      btn.classList.add('selected'); selectedReason = reason;
     }
-
     async function confirmCancel() {
       if (!selectedReason) return alert('Please select a reason.');
       await updateStatus(pendingCancelId, 'cancelled', selectedReason);
@@ -263,10 +271,8 @@
     }
 
     setInterval(() => {
-      if (document.getElementById('page-orders').classList.contains('active')) loadOrders();
+      if (currentVenue && document.getElementById('page-orders').classList.contains('active')) loadOrders();
     }, 5000);
-
-    loadMenu();
   </script>
 </body>
 </html>
