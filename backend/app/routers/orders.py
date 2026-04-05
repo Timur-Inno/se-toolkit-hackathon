@@ -8,6 +8,12 @@ from ..models.schemas import OrderCreate, OrderOut, OrderItemIn
 router = APIRouter()
 BOT_NOTIFY_URL = os.getenv("BOT_NOTIFY_URL", "http://bot:9000/notify")
 
+VALID_TRANSITIONS = {
+    "pending": ["ready", "cancelled"],
+    "ready": ["served", "cancelled"],
+    "served": [],
+    "cancelled": [],
+}
 
 @router.post("/", response_model=OrderOut, status_code=201)
 async def create_order(order: OrderCreate):
@@ -22,7 +28,6 @@ async def create_order(order: OrderCreate):
             {"oid": order_id, "mid": item.menu_item_id, "qty": item.quantity},
         )
     return await _get_order(order_id)
-
 
 @router.get("/", response_model=list[OrderOut])
 async def list_orders():
@@ -42,44 +47,34 @@ async def list_orders():
         ))
     return result
 
-
 class StatusUpdate(BaseModel):
     status: str
     reason: str = ""
-
 
 @router.patch("/{order_id}/status", response_model=OrderOut)
 async def update_order_status(order_id: int, body: StatusUpdate):
     order = await database.fetch_one("SELECT * FROM orders WHERE id = :id", {"id": order_id})
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
+
+    allowed = VALID_TRANSITIONS.get(order["status"], [])
+    if body.status not in allowed:
+        raise HTTPException(status_code=400, detail=f"Cannot move from '{order['status']}' to '{body.status}'")
+
     await database.execute(
         "UPDATE orders SET status = :status WHERE id = :id",
         {"status": body.status, "id": order_id},
     )
-    updated = await _get_order(order_id)
-
     if body.status == "ready":
-        await _notify(order["telegram_user_id"], {
-            "telegram_user_id": order["telegram_user_id"],
-            "order_id": order_id,
-            "type": "ready",
-        })
+        await _notify(order["telegram_user_id"], {"telegram_user_id": order["telegram_user_id"], "order_id": order_id, "type": "ready"})
     elif body.status == "cancelled":
-        await _notify(order["telegram_user_id"], {
-            "telegram_user_id": order["telegram_user_id"],
-            "order_id": order_id,
-            "type": "cancelled",
-            "reason": body.reason,
-        })
+        await _notify(order["telegram_user_id"], {"telegram_user_id": order["telegram_user_id"], "order_id": order_id, "type": "cancelled", "reason": body.reason})
 
-    return updated
-
+    return await _get_order(order_id)
 
 @router.get("/{order_id}", response_model=OrderOut)
 async def get_order(order_id: int):
     return await _get_order(order_id)
-
 
 async def _notify(user_id: int, payload: dict):
     try:
@@ -87,7 +82,6 @@ async def _notify(user_id: int, payload: dict):
             await client.post(BOT_NOTIFY_URL, json=payload)
     except Exception:
         pass
-
 
 async def _get_order(order_id: int):
     order = await database.fetch_one("SELECT * FROM orders WHERE id = :id", {"id": order_id})
