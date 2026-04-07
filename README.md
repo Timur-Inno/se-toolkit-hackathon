@@ -4,7 +4,13 @@ A Telegram-based food ordering system for Innopolis University students across 4
 
 ## Demo
 
-*Screenshots coming soon*
+![Bot](Снимок экрана 2026-04-07 073159.png)
+
+![Admin Menu](Снимок экрана 2026-04-07 073447.png)
+
+![Admin Orders](Снимок экрана 2026-04-07 073532.png)
+
+![Admin History](Снимок экрана 2026-04-07 073540.png)
 
 ## Product context
 
