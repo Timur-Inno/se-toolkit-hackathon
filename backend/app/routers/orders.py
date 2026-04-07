@@ -65,7 +65,7 @@ async def update_order_status(order_id: int, body: StatusUpdate):
         raise HTTPException(status_code=404, detail="Order not found")
     allowed = VALID_TRANSITIONS.get(order["status"], [])
     if body.status not in allowed:
-        raise HTTPException(status_code=400, detail=f"Cannot move from {order[chr(39)]status{chr(39)]} to {body.status}")
+        raise HTTPException(status_code=400, detail=f"Cannot move from {order["status"]} to {body.status}")
     await database.execute(
         "UPDATE orders SET status = :status WHERE id = :id",
         {"status": body.status, "id": order_id},
