@@ -242,7 +242,14 @@
       loadMenu();
     }
 
+    let menuIndex = {};
+    async function refreshMenuIndex() {
+      const res = await fetch(`${API}/menu/?venue=${venueKey}`);
+      const items = await res.json();
+      items.forEach(i => menuIndex[i.id] = i.name);
+    }
     async function loadOrders() {
+      await refreshMenuIndex();
       const res = await fetch(`${API}/orders/?venue=${venueKey}`);
       const all = await res.json();
       const active = all.filter(o => o.status === 'pending' || o.status === 'ready');
@@ -251,7 +258,7 @@
       tbody.innerHTML = active.map(o => `<tr>
         <td>#${o.id}</td>
         <td>${o.telegram_username ? '@' + o.telegram_username : o.telegram_user_id}</td>
-        <td>${o.items.map(i => i.menu_item_id + 'x' + i.quantity).join(', ')}</td>
+        <td>${o.items.map(i => (menuIndex[i.menu_item_id] || '#'+i.menu_item_id) + ' x' + i.quantity).join(', ')}</td>
         <td><span class="tag tag-${o.status}">${o.status}</span></td>
         <td>
           ${o.status === 'pending' ? `<button class="btn-ready" onclick="updateStatus(${o.id},'ready')">Mark ready</button>` : ''}
@@ -262,6 +269,7 @@
     }
 
     async function loadHistory() {
+      await refreshMenuIndex();
       const res = await fetch(`${API}/orders/?venue=${venueKey}`);
       const all = await res.json();
       const done = all.filter(o => o.status === 'served' || o.status === 'cancelled');
@@ -270,7 +278,7 @@
       tbody.innerHTML = done.map(o => `<tr>
         <td>#${o.id}</td>
         <td>${o.telegram_username ? '@' + o.telegram_username : o.telegram_user_id}</td>
-        <td>${o.items.map(i => i.menu_item_id + 'x' + i.quantity).join(', ')}</td>
+        <td>${o.items.map(i => (menuIndex[i.menu_item_id] || '#'+i.menu_item_id) + ' x' + i.quantity).join(', ')}</td>
         <td><span class="tag tag-${o.status}">${o.status}</span></td>
       </tr>`).join('');
     }
