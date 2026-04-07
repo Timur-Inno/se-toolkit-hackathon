@@ -66,9 +66,9 @@ docker compose up -d
 
 | Service | URL |
 |---------|-----|
-| API | http://SERVER_IP:8000 |
-| Swagger docs | http://SERVER_IP:8000/docs |
-| Admin panel | http://SERVER_IP:8080/happiness (etc.) |
+| API | http://10.93.25.190:8000 |
+| Swagger docs | http://10.93.25.190:8000/docs |
+| Admin panel | http://10.93.25.190:8080/happiness (etc.) |
 
 ## Author
 
