@@ -46,10 +46,13 @@ A Telegram-based food ordering system for Innopolis University students across 4
 **Staff:** Open your venue link, enter your password, manage your menu and orders from the three tabs.
 
 Admin links:
-- Happiness: http://10.93.25.190:8080/happiness
-- Neuro Coffee: http://10.93.25.190:8080/neuro
-- In Joy: http://10.93.25.190:8080/injoy
-- Canteen: http://10.93.25.190:8080/canteen
+
+| Venue | URL | Password |
+|-------|-----|----------|
+| Happiness | http://10.93.25.190:8080/happiness | happy123 |
+| Neuro Coffee | http://10.93.25.190:8080/neuro | neuro123 |
+| In Joy | http://10.93.25.190:8080/injoy | injoy123 |
+| Canteen | http://10.93.25.190:8080/canteen | canteen123 |
 
 ## Deployment
 
