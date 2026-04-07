@@ -1,73 +1,74 @@
 # InnoFood - Canteen Bot
 
-A Telegram-based food ordering system for Innopolis University students.
+A Telegram-based food ordering system for Innopolis University students across 4 venues.
 
-**Bot:** [@InnoFood_bot](https://t.me/InnoFood_bot) - send /start to browse today's menu and place an order.
+## Demo
 
-**Admin panel:** http://10.93.25.190:8080
+*Screenshots coming soon*
 
-## Problem
+## Product context
 
-Students at Innopolis University have no way to check menus or order food in advance, causing queues and uncertainty about what is available.
+**End users:** Students and staff at Innopolis University.
 
-## Solution
+**Problem:** Students at Innopolis have no way to browse menus or place orders in advance across the different food venues on campus, causing queues and uncertainty.
 
-A Telegram bot lets students pick a food place, browse the menu, and order instantly. Staff at each venue manage their menu and orders through a shared web admin panel.
-
-## Venues
-
-- Happiness - main dishes, snacks, drinks, desserts
-- Neuro Coffee - coffee, lattes, teas, pastries
-- In Joy - coffee, lattes, teas, pastries
-- Canteen - soups, mains, sides, drinks, desserts
+**Solution:** A Telegram bot lets students pick a venue, browse today's menu, and place orders instantly. Each venue has its own password-protected admin panel to manage their menu and orders.
 
 ## Features
 
-- Venue selection at the start of every order
-- Browse menu by category per venue
-- Add items to cart and confirm order
-- Notification when order is ready for pickup
-- Cancel with reason - student gets notified instantly
-- Admin panel with Menu, Orders, and History tabs
-- Orders filtered per venue so each place sees only their orders
-- Order state flow: pending -> ready -> served
-- Auto-refresh on the Orders tab every 5 seconds
+### Implemented
+
+- Telegram bot with 4 venues: Happiness, Neuro Coffee, In Joy, Canteen
+- Per-venue menu browsing and ordering via Telegram
+- Shopping cart with order confirmation
+- Ready notification - bot notifies student when order is ready for pickup
+- Cancel with reason - staff picks a reason, student gets notified instantly
+- Per-venue admin panel with password login (locked to that venue)
+- Menu tab - add/remove daily items by category
+- Orders tab - view active orders, mark ready or served, cancel with reason
+- History tab - served and cancelled orders archived separately
+- Order state machine - strict flow: pending -> ready -> served
+- Auto-refresh - Orders tab updates every 5 seconds
 - REST API with Swagger docs at /docs
-- PostgreSQL for persistent storage
-- Fully dockerized, all services start with one command
+- PostgreSQL persistent storage
+- Dockerized - all services start with one command
 
-## Stack
+### Not yet implemented
 
-| Component | Tech |
-|-----------|------|
-| Bot | python-telegram-bot 21 + aiohttp |
-| Backend | FastAPI + asyncpg + databases |
-| Database | PostgreSQL 16 |
-| Admin UI | nginx + HTML/JS |
-| Deploy | Docker Compose on Ubuntu 24.04 |
+- Student order history in the bot
+- Push notifications for new orders to admin
+- Mobile-friendly admin UI improvements
 
-## Quick Start
+## Usage
 
-Requirements: Docker, Docker Compose, Telegram bot token from @BotFather
+**Students:** Open Telegram, find @InnoFood_bot, send /start, pick a venue, browse the menu, add to cart, confirm order. You will get a Telegram message when your order is ready.
 
-    git clone https://github.com/Timur-Inno/se-toolkit-hackathon.git
-    cd se-toolkit-hackathon
-    cp .env.example .env
-    nano .env
-    docker compose up -d
+**Staff:** Open your venue link, enter your password, manage your menu and orders from the three tabs.
+
+Admin links:
+- Happiness: http://10.93.25.190:8080/happiness
+- Neuro Coffee: http://10.93.25.190:8080/neuro
+- In Joy: http://10.93.25.190:8080/injoy
+- Canteen: http://10.93.25.190:8080/canteen
+
+## Deployment
+
+**OS:** Ubuntu 24.04
+
+**Requirements:** Docker, Docker Compose, Telegram bot token from @BotFather
+```bash
+git clone https://github.com/Timur-Inno/se-toolkit-hackathon.git
+cd se-toolkit-hackathon
+cp .env.example .env
+nano .env  # set TELEGRAM_BOT_TOKEN
+docker compose up -d
+```
 
 | Service | URL |
 |---------|-----|
-| API | http://10.93.25.190:8000 |
-| Swagger docs | http://10.93.25.190:8000/docs |
-| Admin panel | http://10.93.25.190:8080 |
-
-## Order Flow
-
-    Student  ->  /start -> pick venue -> browse menu -> add to cart -> confirm
-    Staff    ->  Orders tab: mark ready  -> student notified via Telegram
-    Staff    ->  Orders tab: mark served -> moves to History tab
-    Staff    ->  Orders tab: cancel with reason -> student notified via Telegram
+| API | http://SERVER_IP:8000 |
+| Swagger docs | http://SERVER_IP:8000/docs |
+| Admin panel | http://SERVER_IP:8080/happiness (etc.) |
 
 ## Author
 
