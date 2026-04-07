@@ -6,32 +6,11 @@
   <title>Canteen Admin</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #1a1a1a; }
-    .screen { display: none; }
-    .screen.active { display: block; }
-
-    /* Login */
-    #login-screen.active { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-    .login-card { background: #fff; border-radius: 16px; border: 1px solid #e0e0e0; padding: 40px; width: 320px; text-align: center; }
-    .login-card h1 { font-size: 20px; margin-bottom: 8px; }
-    .login-card p { color: #888; font-size: 14px; margin-bottom: 24px; }
-    .pin-input { width: 100%; padding: 12px; font-size: 24px; text-align: center; letter-spacing: 8px; border: 1px solid #d0d0d0; border-radius: 8px; outline: none; margin-bottom: 12px; }
-    .pin-input:focus { border-color: #1a1a1a; }
-    .btn-login { width: 100%; padding: 12px; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; }
-    .login-error { color: #c0392b; font-size: 13px; margin-top: 8px; display: none; }
-
-    /* Venue selector */
-    #venue-screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 16px; }
-    .venue-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 420px; width: 100%; padding: 0 16px; }
-    .venue-card { padding: 28px 16px; border-radius: 12px; border: 2px solid #e0e0e0; background: #fff; cursor: pointer; text-align: center; font-size: 15px; font-weight: 600; transition: all .15s; }
-    .venue-card:hover { border-color: #1a1a1a; }
-
-    /* Main app */
-    #app-screen { padding: 32px; }
-    h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
-    .venue-badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
-    .tabs { display: flex; gap: 4px; margin-bottom: 24px; flex-wrap: wrap; }
-    .tab { padding: 8px 16px; border-radius: 8px; border: 1px solid #d0d0d0; background: #fff; cursor: pointer; font-size: 14px; font-weight: 500; color: #555; }
+    body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #1a1a1a; padding: 32px; }
+    h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+    .venue-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 20px; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 24px; }
+    .tab { padding: 8px 20px; border-radius: 8px; border: 1px solid #d0d0d0; background: #fff; cursor: pointer; font-size: 14px; font-weight: 500; color: #555; }
     .tab.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
     .page { display: none; }
     .page.active { display: block; }
@@ -39,7 +18,6 @@
     h2 { font-size: 15px; font-weight: 600; margin-bottom: 16px; color: #444; }
     .form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
     input, select { border: 1px solid #d0d0d0; border-radius: 8px; padding: 8px 12px; font-size: 14px; outline: none; }
-    input:focus, select:focus { border-color: #666; }
     button { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; }
     .btn-add { background: #1a1a1a; color: #fff; }
     .btn-del { background: transparent; color: #c0392b; border: 1px solid #c0392b; padding: 4px 12px; font-size: 13px; }
@@ -57,9 +35,6 @@
     .tag-ready { background: #d1e7dd; color: #0a5c36; }
     .tag-served { background: #cfe2ff; color: #084298; }
     .tag-cancelled { background: #f8d7da; color: #842029; }
-    .day-tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
-    .day-tab { padding: 6px 14px; border-radius: 6px; border: 1px solid #d0d0d0; background: #fff; cursor: pointer; font-size: 13px; color: #555; }
-    .day-tab.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; }
     .modal-overlay.open { display: flex; }
     .modal { background: #fff; border-radius: 14px; padding: 28px; width: 100%; max-width: 400px; }
@@ -70,344 +45,264 @@
     .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
     .btn-confirm-cancel { background: #c0392b; color: #fff; }
     .btn-back { background: transparent; border: 1px solid #d0d0d0; color: #555; }
+    .login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; gap: 16px; }
+    .login-box { background: #fff; border-radius: 14px; border: 1px solid #e0e0e0; padding: 32px; width: 100%; max-width: 340px; text-align: center; }
+    .login-box h2 { font-size: 20px; margin-bottom: 6px; }
+    .login-box p { color: #888; font-size: 13px; margin-bottom: 20px; }
+    .login-box input { width: 100%; margin-bottom: 12px; padding: 10px 14px; }
+    .login-box button { width: 100%; padding: 10px; }
+    .login-error { color: #c0392b; font-size: 13px; margin-top: 8px; display: none; }
+    .wrong-venue { display: flex; align-items: center; justify-content: center; min-height: 80vh; flex-direction: column; gap: 12px; color: #888; }
   </style>
 </head>
 <body>
 
-<!-- Login -->
-<div id="login-screen" class="screen active">
-  <div class="login-card">
-    <h1>Canteen Admin</h1>
-    <p>Enter your PIN to continue</p>
-    <input class="pin-input" type="password" id="pin" maxlength="4" placeholder="****" onkeydown="if(event.key==='Enter') doLogin()">
-    <button class="btn-login" onclick="doLogin()">Enter</button>
-    <div class="login-error" id="login-error">Wrong PIN. Try again.</div>
+  <div id="wrong-venue" class="wrong-venue" style="display:none">
+    <div style="font-size:48px">🚫</div>
+    <h2 style="color:#1a1a1a">Invalid venue</h2>
+    <p>Please use the correct link provided to you.</p>
   </div>
-</div>
 
-<!-- Venue selector -->
-<div id="venue-screen" class="screen">
-  <h1 style="margin-bottom:24px">Select your venue</h1>
-  <div class="venue-grid">
-    <div class="venue-card" onclick="selectVenue('happiness')">🍔<br>Happiness</div>
-    <div class="venue-card" onclick="selectVenue('neuro')">☕<br>Neuro Coffee</div>
-    <div class="venue-card" onclick="selectVenue('injoy')">🧋<br>In Joy</div>
-    <div class="venue-card" onclick="selectVenue('canteen')">🍽<br>Canteen</div>
+  <div id="login-screen" class="login-screen" style="display:none">
+    <div class="login-box">
+      <div id="login-emoji" style="font-size:40px;margin-bottom:8px"></div>
+      <h2 id="login-title"></h2>
+      <p>Enter your admin password</p>
+      <input type="password" id="password-input" placeholder="Password" onkeydown="if(event.key==='Enter')tryLogin()">
+      <button class="btn-add" onclick="tryLogin()">Login</button>
+      <div class="login-error" id="login-error">Wrong password. Try again.</div>
+    </div>
   </div>
-</div>
 
-<!-- Main app -->
-<div id="app-screen" class="screen">
-  <h1 id="venue-title"></h1>
-  <div id="venue-badge" class="venue-badge"></div>
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('menu',event)">Today's Menu</button>
-    <button class="tab" onclick="switchTab('weekly',event)">Weekly Menu</button>
-    <button class="tab" onclick="switchTab('orders',event)">Orders</button>
-    <button class="tab" onclick="switchTab('history',event)">History</button>
-    <button class="tab" onclick="goBack()" style="margin-left:auto">Switch venue</button>
-  </div><!-- Today's Menu -->
-  <div id="page-menu" class="page active">
-    <div class="card">
-      <h2>Add item for a specific date</h2>
-      <div class="form-row">
-        <input id="name" placeholder="Item name" style="flex:2;min-width:140px">
-        <input id="price" type="number" placeholder="Price" step="0.01" style="width:100px">
-        <select id="category" style="width:130px"></select>
-        <input id="date" type="date" style="width:145px">
-        <button class="btn-add" onclick="addItem()">Add</button>
+  <div id="main-app" style="display:none">
+    <h1 id="venue-title"></h1>
+    <div id="venue-badge" class="venue-badge"></div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('menu', event)">Menu</button>
+      <button class="tab" onclick="switchTab('orders', event)">Orders</button>
+      <button class="tab" onclick="switchTab('history', event)">History</button>
+    </div>
+
+    <div id="page-menu" class="page active">
+      <div class="card">
+        <h2>Add menu item</h2>
+        <div class="form-row">
+          <input id="name" placeholder="Item name" style="flex:2; min-width:160px">
+          <input id="price" type="number" placeholder="Price" step="0.01" style="width:110px">
+          <select id="category" style="width:130px"></select>
+          <input id="date" type="date" style="width:150px">
+          <button class="btn-add" onclick="addItem()">Add</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Today's menu</h2>
+        <table>
+          <thead><tr><th>Name</th><th>Category</th><th>Price</th><th></th></tr></thead>
+          <tbody id="menu-body"></tbody>
+        </table>
       </div>
     </div>
-    <div class="card">
-      <h2>Today's menu (weekly + manual)</h2>
-      <table>
-        <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Type</th><th></th></tr></thead>
-        <tbody id="menu-body"></tbody>
-      </table>
-    </div>
-  </div>
 
-  <!-- Weekly Menu -->
-  <div id="page-weekly" class="page">
-    <div class="card">
-      <h2>Add recurring item</h2>
-      <div class="form-row">
-        <input id="w-name" placeholder="Item name" style="flex:2;min-width:140px">
-        <input id="w-price" type="number" placeholder="Price" step="0.01" style="width:100px">
-        <select id="w-category" style="width:130px"></select>
-        <select id="w-day" style="width:120px">
-          <option value="0">Monday</option>
-          <option value="1">Tuesday</option>
-          <option value="2">Wednesday</option>
-          <option value="3">Thursday</option>
-          <option value="4">Friday</option>
-          <option value="5">Saturday</option>
-          <option value="6">Sunday</option>
-        </select>
-        <button class="btn-add" onclick="addWeeklyItem()">Add</button>
+    <div id="page-orders" class="page">
+      <div class="card">
+        <h2>Active orders <button class="btn-add" style="font-size:12px;padding:4px 12px;margin-left:12px" onclick="loadOrders()">Refresh</button></h2>
+        <table>
+          <thead><tr><th>#</th><th>Student</th><th>Items</th><th>Status</th><th></th></tr></thead>
+          <tbody id="orders-body"></tbody>
+        </table>
       </div>
     </div>
-    <div class="card">
-      <h2>Recurring menu</h2>
-      <div class="day-tabs" id="day-tabs"></div>
-      <table>
-        <thead><tr><th>Name</th><th>Category</th><th>Price</th><th></th></tr></thead>
-        <tbody id="weekly-body"></tbody>
-      </table>
+
+    <div id="page-history" class="page">
+      <div class="card">
+        <h2>Order history <button class="btn-add" style="font-size:12px;padding:4px 12px;margin-left:12px" onclick="loadHistory()">Refresh</button></h2>
+        <table>
+          <thead><tr><th>#</th><th>Student</th><th>Items</th><th>Status</th></tr></thead>
+          <tbody id="history-body"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <!-- Orders -->
-  <div id="page-orders" class="page">
-    <div class="card">
-      <h2>Active orders <button class="btn-add" style="font-size:12px;padding:4px 12px;margin-left:12px" onclick="loadOrders()">Refresh</button></h2>
-      <table>
-        <thead><tr><th>#</th><th>Student</th><th>Items</th><th>Status</th><th></th></tr></thead>
-        <tbody id="orders-body"></tbody>
-      </table>
+  <div class="modal-overlay" id="cancel-modal">
+    <div class="modal">
+      <h3>Why are you cancelling?</h3>
+      <div class="reason-grid">
+        <button class="reason-btn" onclick="selectReason(this, 'Item not available today')">Not available today</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Venue is closed')">Venue closed</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Ordered too late')">Ordered too late</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Running out of ingredients')">Out of ingredients</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Technical issue')">Technical issue</button>
+        <button class="reason-btn" onclick="selectReason(this, 'Other')">Other</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-back" onclick="closeModal()">Back</button>
+        <button class="btn-confirm-cancel" onclick="confirmCancel()">Cancel order & notify</button>
+      </div>
     </div>
   </div>
 
-  <!-- History -->
-  <div id="page-history" class="page">
-    <div class="card">
-      <h2>Order history <button class="btn-add" style="font-size:12px;padding:4px 12px;margin-left:12px" onclick="loadHistory()">Refresh</button></h2>
-      <table>
-        <thead><tr><th>#</th><th>Student</th><th>Items</th><th>Status</th></tr></thead>
-        <tbody id="history-body"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
+  <script>
+    const API = `http://${location.hostname}:8000`;
 
-<!-- Cancel modal -->
-<div class="modal-overlay" id="cancel-modal">
-  <div class="modal">
-    <h3>Why are you cancelling?</h3>
-    <div class="reason-grid">
-      <button class="reason-btn" onclick="selectReason(this,'Item not available today')">Not available today</button>
-      <button class="reason-btn" onclick="selectReason(this,'Venue is closed')">Venue closed</button>
-      <button class="reason-btn" onclick="selectReason(this,'Ordered too late')">Ordered too late</button>
-      <button class="reason-btn" onclick="selectReason(this,'Running out of ingredients')">Out of ingredients</button>
-      <button class="reason-btn" onclick="selectReason(this,'Technical issue')">Technical issue</button>
-      <button class="reason-btn" onclick="selectReason(this,'Other')">Other</button>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-back" onclick="closeModal()">Back</button>
-      <button class="btn-confirm-cancel" onclick="confirmCancel()">Cancel order & notify</button>
-    </div>
-  </div>
-</div>
+    const VENUES = {
+      happiness: { name: 'Happiness', emoji: '🍔', color: '#e67e22', password: 'happy123', cats: ['main','snack','side','drink','dessert'] },
+      neuro:     { name: 'Neuro Coffee', emoji: '☕', color: '#6f4e37', password: 'neuro123', cats: ['coffee','latte','tea','pastry','snack'] },
+      injoy:     { name: 'In Joy', emoji: '🧋', color: '#8e44ad', password: 'injoy123', cats: ['coffee','latte','tea','pastry','snack'] },
+      canteen:   { name: 'Canteen', emoji: '🍽', color: '#27ae60', password: 'canteen123', cats: ['soup','main','side','drink','dessert'] },
+    };
 
-<script>
-  const API = `http://${location.hostname}:8000`;
-  const PIN = '1234';
-  const VENUES = {
-    happiness: { name: 'Happiness', emoji: '🍔', color: '#e67e22', cats: ['main','snack','side','drink','dessert'] },
-    neuro:     { name: 'Neuro Coffee', emoji: '☕', color: '#6f4e37', cats: ['coffee','latte','tea','pastry','snack'] },
-    injoy:     { name: 'In Joy', emoji: '🧋', color: '#8e44ad', cats: ['coffee','latte','tea','pastry','snack'] },
-    canteen:   { name: 'Canteen', emoji: '🍽', color: '#27ae60', cats: ['soup','main','side','drink','dessert'] },
-  };
-  const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-  let currentVenue = null;
-  let selectedDay = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
-  let pendingCancelId = null;
-  let selectedReason = '';
+    const params = new URLSearchParams(location.search);
+    const venueKey = params.get('venue');
+    const venue = VENUES[venueKey];
+    let pendingCancelId = null;
+    let selectedReason = '';
 
-  function today() { return new Date().toISOString().split('T')[0]; }
+    function today() { return new Date().toISOString().split('T')[0]; }
 
-  function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-  }
-
-  function doLogin() {
-    const pin = document.getElementById('pin').value;
-    if (pin === PIN) {
-      showScreen('venue-screen');
+    if (!venue) {
+      document.getElementById('wrong-venue').style.display = 'flex';
     } else {
-      document.getElementById('login-error').style.display = 'block';
-      document.getElementById('pin').value = '';
+      const sessionKey = 'auth_' + venueKey;
+      if (sessionStorage.getItem(sessionKey) === 'yes') {
+        showApp();
+      } else {
+        document.getElementById('login-screen').style.display = 'flex';
+        document.getElementById('login-emoji').textContent = venue.emoji;
+        document.getElementById('login-title').textContent = venue.name;
+      }
     }
-  }
 
-  function selectVenue(key) {
-    currentVenue = key;
-    const v = VENUES[key];
-    document.getElementById('venue-title').textContent = v.emoji + ' ' + v.name + ' Admin';
-    const badge = document.getElementById('venue-badge');
-    badge.textContent = v.name;
-    badge.style.cssText = `background:${v.color}22;color:${v.color};border:1px solid ${v.color};display:inline-block;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:20px;`;
-    const cats = v.cats;
-    ['category','w-category'].forEach(id => {
-      document.getElementById(id).innerHTML = cats.map(c => `<option value="${c}">${c.charAt(0).toUpperCase()+c.slice(1)}</option>`).join('');
-    });
-    document.getElementById('date').value = today();
-    buildDayTabs();
-    showScreen('app-screen');
-    loadMenu();
-  }
+    function tryLogin() {
+      const pw = document.getElementById('password-input').value;
+      if (pw === venue.password) {
+        sessionStorage.setItem('auth_' + venueKey, 'yes');
+        document.getElementById('login-screen').style.display = 'none';
+        showApp();
+      } else {
+        document.getElementById('login-error').style.display = 'block';
+      }
+    }
 
-  function goBack() {
-    currentVenue = null;
-    showScreen('venue-screen');
-  }
+    function showApp() {
+      document.getElementById('main-app').style.display = 'block';
+      document.getElementById('venue-title').textContent = venue.emoji + ' ' + venue.name + ' Admin';
+      const badge = document.getElementById('venue-badge');
+      badge.textContent = venue.name;
+      badge.style.background = venue.color + '22';
+      badge.style.color = venue.color;
+      badge.style.border = '1px solid ' + venue.color;
+      const sel = document.getElementById('category');
+      sel.innerHTML = venue.cats.map(c => `<option value="${c}">${c.charAt(0).toUpperCase()+c.slice(1)}</option>`).join('');
+      document.getElementById('date').value = today();
+      loadMenu();
+    }
 
-  function switchTab(tab, e) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    e.target.classList.add('active');
-    document.getElementById('page-' + tab).classList.add('active');
-    if (tab === 'menu') loadMenu();
-    if (tab === 'weekly') loadWeekly();
-    if (tab === 'orders') loadOrders();
-    if (tab === 'history') loadHistory();
-  }
+    function switchTab(tab, e) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      e.target.classList.add('active');
+      document.getElementById('page-' + tab).classList.add('active');
+      if (tab === 'orders') loadOrders();
+      if (tab === 'history') loadHistory();
+    }
 
-  function buildDayTabs() {
-    const cont = document.getElementById('day-tabs');
-    cont.innerHTML = DAYS.map((d, i) => `<button class="day-tab ${i===selectedDay?'active':''}" onclick="selectDayTab(${i},this)">${d}</button>`).join('');
-  }
+    async function loadMenu() {
+      const res = await fetch(`${API}/menu/?day=${today()}&venue=${venueKey}`);
+      const items = await res.json();
+      const tbody = document.getElementById('menu-body');
+      if (!items.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty">No items yet.</td></tr>'; return; }
+      tbody.innerHTML = items.map(i => `<tr>
+        <td>${i.name}</td>
+        <td><span class="tag tag-cat">${i.category}</span></td>
+        <td>${parseFloat(i.price).toFixed(2)} R</td>
+        <td><button class="btn-del" onclick="deleteItem(${i.id})">Remove</button></td>
+      </tr>`).join('');
+    }
 
-  function selectDayTab(i, btn) {
-    selectedDay = i;
-    document.querySelectorAll('.day-tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    loadWeekly();
-  }
+    async function addItem() {
+      const name = document.getElementById('name').value.trim();
+      const price = parseFloat(document.getElementById('price').value);
+      const category = document.getElementById('category').value;
+      const available_date = document.getElementById('date').value;
+      if (!name || !price) return alert('Fill in name and price.');
+      await fetch(`${API}/menu/`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, price, category, venue: venueKey, available_date }),
+      });
+      document.getElementById('name').value = '';
+      document.getElementById('price').value = '';
+      loadMenu();
+    }
 
-  async function loadMenu() {
-    const res = await fetch(`${API}/menu/?day=${today()}&venue=${currentVenue}`);
-    const items = await res.json();
-    const tbody = document.getElementById('menu-body');
-    if (!items.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">No items today.</td></tr>'; return; }
-    tbody.innerHTML = items.map(i => `<tr>
-      <td>${i.name}</td>
-      <td><span class="tag tag-cat">${i.category}</span></td>
-      <td>${parseFloat(i.price).toFixed(2)} R</td>
-      <td><span class="tag tag-cat">${i.id < 0 ? 'weekly' : 'manual'}</span></td>
-      <td>${i.id > 0 ? `<button class="btn-del" onclick="deleteItem(${i.id})">Remove</button>` : ''}</td>
-    </tr>`).join('');
-  }
+    async function deleteItem(id) {
+      if (!confirm('Remove this item?')) return;
+      await fetch(`${API}/menu/${id}`, { method: 'DELETE' });
+      loadMenu();
+    }
 
-  async function addItem() {
-    const name = document.getElementById('name').value.trim();
-    const price = parseFloat(document.getElementById('price').value);
-    const category = document.getElementById('category').value;
-    const available_date = document.getElementById('date').value;
-    if (!name || !price) return alert('Fill in name and price.');
-    await fetch(`${API}/menu/`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, price, category, venue: currentVenue, available_date }),
-    });
-    document.getElementById('name').value = '';
-    document.getElementById('price').value = '';
-    loadMenu();
-  }
+    async function loadOrders() {
+      const res = await fetch(`${API}/orders/?venue=${venueKey}`);
+      const all = await res.json();
+      const active = all.filter(o => o.status === 'pending' || o.status === 'ready');
+      const tbody = document.getElementById('orders-body');
+      if (!active.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">No active orders.</td></tr>'; return; }
+      tbody.innerHTML = active.map(o => `<tr>
+        <td>#${o.id}</td>
+        <td>${o.telegram_username ? '@' + o.telegram_username : o.telegram_user_id}</td>
+        <td>${o.items.map(i => i.menu_item_id + 'x' + i.quantity).join(', ')}</td>
+        <td><span class="tag tag-${o.status}">${o.status}</span></td>
+        <td>
+          ${o.status === 'pending' ? `<button class="btn-ready" onclick="updateStatus(${o.id},'ready')">Mark ready</button>` : ''}
+          ${o.status === 'ready' ? `<button class="btn-served" onclick="updateStatus(${o.id},'served')">Mark served</button>` : ''}
+          <button class="btn-cancel" onclick="openCancelModal(${o.id})">Cancel</button>
+        </td>
+      </tr>`).join('');
+    }
 
-  async function deleteItem(id) {
-    if (!confirm('Remove this item?')) return;
-    await fetch(`${API}/menu/${id}`, { method: 'DELETE' });
-    loadMenu();
-  }
+    async function loadHistory() {
+      const res = await fetch(`${API}/orders/?venue=${venueKey}`);
+      const all = await res.json();
+      const done = all.filter(o => o.status === 'served' || o.status === 'cancelled');
+      const tbody = document.getElementById('history-body');
+      if (!done.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty">No history yet.</td></tr>'; return; }
+      tbody.innerHTML = done.map(o => `<tr>
+        <td>#${o.id}</td>
+        <td>${o.telegram_username ? '@' + o.telegram_username : o.telegram_user_id}</td>
+        <td>${o.items.map(i => i.menu_item_id + 'x' + i.quantity).join(', ')}</td>
+        <td><span class="tag tag-${o.status}">${o.status}</span></td>
+      </tr>`).join('');
+    }
 
-  async function loadWeekly() {
-    const res = await fetch(`${API}/menu/weekly?venue=${currentVenue}`);
-    const all = await res.json();
-    const items = all.filter(i => i.day_of_week === selectedDay);
-    const tbody = document.getElementById('weekly-body');
-    if (!items.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty">No items for this day.</td></tr>'; return; }
-    tbody.innerHTML = items.map(i => `<tr>
-      <td>${i.name}</td>
-      <td><span class="tag tag-cat">${i.category}</span></td>
-      <td>${parseFloat(i.price).toFixed(2)} R</td>
-      <td><button class="btn-del" onclick="deleteWeeklyItem(${i.id})">Remove</button></td>
-    </tr>`).join('');
-  }
+    async function updateStatus(id, status, reason = '') {
+      await fetch(`${API}/orders/${id}/status`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, reason }),
+      });
+      loadOrders();
+    }
 
-  async function addWeeklyItem() {
-    const name = document.getElementById('w-name').value.trim();
-    const price = parseFloat(document.getElementById('w-price').value);
-    const category = document.getElementById('w-category').value;
-    const day_of_week = parseInt(document.getElementById('w-day').value);
-    if (!name || !price) return alert('Fill in name and price.');
-    await fetch(`${API}/menu/weekly`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ venue: currentVenue, day_of_week, name, price, category }),
-    });
-    document.getElementById('w-name').value = '';
-    document.getElementById('w-price').value = '';
-    selectedDay = day_of_week;
-    buildDayTabs();
-    loadWeekly();
-  }
+    function openCancelModal(id) {
+      pendingCancelId = id; selectedReason = '';
+      document.querySelectorAll('.reason-btn').forEach(b => b.classList.remove('selected'));
+      document.getElementById('cancel-modal').classList.add('open');
+    }
+    function closeModal() { document.getElementById('cancel-modal').classList.remove('open'); }
+    function selectReason(btn, reason) {
+      document.querySelectorAll('.reason-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected'); selectedReason = reason;
+    }
+    async function confirmCancel() {
+      if (!selectedReason) return alert('Please select a reason.');
+      await updateStatus(pendingCancelId, 'cancelled', selectedReason);
+      closeModal();
+    }
 
-  async function deleteWeeklyItem(id) {
-    if (!confirm('Remove this recurring item?')) return;
-    await fetch(`${API}/menu/weekly/${id}`, { method: 'DELETE' });
-    loadWeekly();
-  }
-
-  async function loadOrders() {
-    const res = await fetch(`${API}/orders/?venue=${currentVenue}`);
-    const all = await res.json();
-    const active = all.filter(o => o.status === 'pending' || o.status === 'ready');
-    const tbody = document.getElementById('orders-body');
-    if (!active.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">No active orders.</td></tr>'; return; }
-    tbody.innerHTML = active.map(o => `<tr>
-      <td>#${o.id}</td>
-      <td>${o.telegram_username ? '@'+o.telegram_username : o.telegram_user_id}</td>
-      <td>${o.items.map(i => i.menu_item_id+'x'+i.quantity).join(', ')}</td>
-      <td><span class="tag tag-${o.status}">${o.status}</span></td>
-      <td>
-        ${o.status==='pending' ? `<button class="btn-ready" onclick="updateStatus(${o.id},'ready')">Mark ready</button>` : ''}
-        ${o.status==='ready' ? `<button class="btn-served" onclick="updateStatus(${o.id},'served')">Mark served</button>` : ''}
-        <button class="btn-cancel" onclick="openCancelModal(${o.id})">Cancel</button>
-      </td>
-    </tr>`).join('');
-  }
-
-  async function loadHistory() {
-    const res = await fetch(`${API}/orders/?venue=${currentVenue}`);
-    const all = await res.json();
-    const done = all.filter(o => o.status === 'served' || o.status === 'cancelled');
-    const tbody = document.getElementById('history-body');
-    if (!done.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty">No history yet.</td></tr>'; return; }
-    tbody.innerHTML = done.map(o => `<tr>
-      <td>#${o.id}</td>
-      <td>${o.telegram_username ? '@'+o.telegram_username : o.telegram_user_id}</td>
-      <td>${o.items.map(i => i.menu_item_id+'x'+i.quantity).join(', ')}</td>
-      <td><span class="tag tag-${o.status}">${o.status}</span></td>
-    </tr>`).join('');
-  }
-
-  async function updateStatus(id, status, reason='') {
-    await fetch(`${API}/orders/${id}/status`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status, reason }),
-    });
-    loadOrders();
-  }
-
-  function openCancelModal(id) {
-    pendingCancelId = id; selectedReason = '';
-    document.querySelectorAll('.reason-btn').forEach(b => b.classList.remove('selected'));
-    document.getElementById('cancel-modal').classList.add('open');
-  }
-  function closeModal() { document.getElementById('cancel-modal').classList.remove('open'); }
-  function selectReason(btn, reason) {
-    document.querySelectorAll('.reason-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected'); selectedReason = reason;
-  }
-  async function confirmCancel() {
-    if (!selectedReason) return alert('Please select a reason.');
-    await updateStatus(pendingCancelId, 'cancelled', selectedReason);
-    closeModal();
-  }
-
-  setInterval(() => {
-    if (currentVenue && document.getElementById('page-orders').classList.contains('active')) loadOrders();
-  }, 5000);
-</script>
+    setInterval(() => {
+      if (venue && sessionStorage.getItem('auth_' + venueKey) === 'yes' &&
+          document.getElementById('page-orders').classList.contains('active')) loadOrders();
+    }, 5000);
+  </script>
 </body>
 </html>
