@@ -154,7 +154,7 @@
     };
 
     const params = new URLSearchParams(location.search);
-    const venueKey = params.get('venue');
+    const venueKey = params.get('venue') || location.pathname.split('/').pop();
     const venue = VENUES[venueKey];
     let pendingCancelId = null;
     let selectedReason = '';
